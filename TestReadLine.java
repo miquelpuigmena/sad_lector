@@ -16,15 +16,10 @@ public class TestReadLine {
     }  
     
     
-    public static void main(String[] args) {
-        TestReadLine trl = new TestReadLine();
-        
-        try{
-            trl.setRaw();
-        }catch(IOException e){}
-        
-        
+    public static void main(String[] args) {        
+       
         BufferedReader in = new EditableBufferedReader(new InputStreamReader(System.in));
+        in.setRaw();
         String str = null;
         int num = 0;
         try {
@@ -35,8 +30,6 @@ public class TestReadLine {
         }
         System.out.println("\nline is: " + num);
         
-        try{
-            trl.unsetRaw();
-        }catch(IOException e){}
+        in.unsetRaw();
     }
 }
