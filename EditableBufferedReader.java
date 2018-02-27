@@ -1,10 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
 import java.io.*;
 /**
  *
@@ -21,18 +14,17 @@ public class EditableBufferedReader extends BufferedReader {
         super(in);
     }
     
+
     @Override
-    public char read(){
+    public int read() throws IOException{
         //llegir char de teclat
-        char llegit = null;
-        try{
-            llegit = (char) super.read();
-            //separar char de seq escape
-            if(llegit == 27){ //23 is ASCII for ^[ (ESC)
-                char to_dispose = super.read();
-                char declare_input = super.read();   
-            }
-        }catch(IOException e){
+        int llegit = 0;
+        
+        llegit = (char) super.read();
+        //separar char de seq escape
+        if(llegit == 27){ //23 is ASCII for ^[ (ESC)
+            int to_dispose = super.read();
+            int declare_input = super.read();   
         }
         
 
