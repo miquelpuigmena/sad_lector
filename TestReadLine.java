@@ -13,17 +13,7 @@ import java.io.*;
 public class TestReadLine {
 
     public TestReadLine() {
-    }
-
-    private void setRaw() throws IOException {
-        String[] command = {"/bin/sh", "-c", "stty raw </dev/tty"};
-        Process proc = Runtime.getRuntime().exec(command);
-    }
-
-    private void unsetRaw() throws IOException {
-        String[] command = {"/bin/sh", "-c", "stty cooked </dev/tty"};
-        Process proc = Runtime.getRuntime().exec(command);
-    }   
+    }  
     
     
     public static void main(String[] args) {
