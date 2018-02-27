@@ -40,6 +40,15 @@ public class EditableBufferedReader extends BufferedReader {
         return llegit;
     }
     
+    public void setRaw() throws IOException {
+        String[] command = {"/bin/sh", "-c", "stty raw </dev/tty"};
+        Process proc = Runtime.getRuntime().exec(command);
+    }
+
+    public void unsetRaw() throws IOException {
+        String[] command = {"/bin/sh", "-c", "stty cooked </dev/tty"};
+        Process proc = Runtime.getRuntime().exec(command);
+    } 
     /**
      *
      * @return
