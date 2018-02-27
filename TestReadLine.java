@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 import java.io.*;
 
 /**
@@ -18,7 +12,7 @@ public class TestReadLine {
     
     public static void main(String[] args) {        
        
-        BufferedReader in = new EditableBufferedReader(new InputStreamReader(System.in));
+        EditableBufferedReader in = new EditableBufferedReader(new InputStreamReader(System.in));
         in.setRaw();
         String str = null;
         int num = 0;
