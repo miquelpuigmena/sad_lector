@@ -10,3 +10,5 @@ OÍDO BARRA!
 
 explicació fork/exec no se quan s'ha de fer servir però te pinta que és clau
 http://cortesfernando.blogspot.com.es/2011/11/procesos-linux-exec-y-fork.html
+
+La funcio {chars_llegits =  super.read(caracters, offset, length)}. No es nescessari posar offset i length -> super.read(caracters)
