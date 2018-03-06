@@ -60,6 +60,28 @@ public class EditableBufferedReader extends BufferedReader {
      */
     @Override
     public String readLine() throws IOException{
-        return super.readLine();
+         int tecla = this.read();
+        
+        switch(tecla){ //COMPLETAR CRIDANT ELS METODES DE LINE
+                
+                case Constants.DRETA:
+                    
+                case Constants.ESQUERRA:
+                    
+                case Constants.INICI:
+                    
+                case Constants.FI:
+                
+                case Constants.SUPRIMIR:
+                    
+                case Constants.INSERT:
+                    
+                //altres casos 
+                            line.escriure(tecla);
+                    
+                    break;
+            }
+        return null;
+    }
     }
 }
