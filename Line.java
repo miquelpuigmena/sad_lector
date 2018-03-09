@@ -1,6 +1,6 @@
 
 import java.io.IOException;
-import static java.lang.StringBuilder.*;
+import java.lang.StringBuilder.*;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -18,7 +18,7 @@ public class Line {
     StringBuilder linia;
     
     public Line(){
-        linia = "";
+        linia = new StringBuilder();
     }
     
     public void moureDreta(){ 
