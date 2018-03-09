@@ -1,6 +1,14 @@
 NOT REALLY USEFULL FOR ANYTHING... have fun
 
 
+
+HOLAAAAA MIRAT LA BRANCA QUE HE POSAT!!! NO T'ESPANTIS PERO ESTA TOT MOLT PLE ARA
+
+
+
+
+
+
 he trobat aixo i igual ens serveix mes tard: tput cup 0 0 //mou el cursor a la fila 0 i columna 0
 
 POSAR LES CONSTANTS NEGATIVES aixi segur que no coincideixen amb ascii
@@ -26,3 +34,9 @@ Com tancar el while?? Sembla mes elegant pero com no se com tancar el while no s
         }
         return 0;
     }
+    
+    
+    
+
+    
+  
