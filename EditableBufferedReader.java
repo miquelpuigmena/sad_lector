@@ -16,98 +16,110 @@ ESCAPE SEQUENCES BEGIN WITH ^[
 */
 
 public class EditableBufferedReader extends BufferedReader {
+    
+    private static final int ESC = 27;
+    private static final int BACKSPACE = 127;
+    private static final int DRETA = 67;
+    private static final int ESQUERRA = 68;
+    private static final int FI = 70;
+    private static final int INICI = 72;
+    private static final int INSERT = 50;
+    private static final int SUPRIMIR = 51;
+    
 
+    Line line;
     public EditableBufferedReader(InputStreamReader in) {
         super(in);
+        line = new Line();
     }
     
 
     @Override
     public int read() throws IOException{
         //llegir char de teclat
-
         int llegit =  super.read();
-        
-	    //separar char de seq escape
-        //retornar int en funcio del que sha llegit
-        
-        if (llegit == 27){
-            //MIRAR QUINA SEQ D'ESCAPE SHA APRETAT
+
+        if (llegit == ESC){
 
             this.read(); //per descartar la segona [
             switch(llegit = this.read()){
 
-                case 67:			// ^[[C tecla dreta
-                    return Constants.DRETA;
+                case DRETA:			// ^[[C tecla dreta
+                    llegit =  Constants.RIGHT;
                     break;
-                case 68:			// ^[[D tecla esquerra
-                    return Constants.ESQUERRA;
+                case ESQUERRA:			// ^[[D tecla esquerra
+                    llegit = Constants.LEFT;
                     break;
-                case 72:			// ^[[H tecla inici
-                    return Constants.INICI;
+                case INICI:			// ^[[H tecla inici
+                    llegit = Constants.HOME;
                     break;
-                case 70:			// ^[[F tecla final
-                    return Constants.FI;
+                case FI:			// ^[[F tecla final
+                    llegit = Constants.FIN;
                     break;
-                case 50:			// ^[[2~ tecla insertar + this.read per borrar ~
+                case INSERT:			// ^[[2~ tecla insertar + this.read per borrar ~
                     this.read();
-                    return Constants.INSERT;
+                    llegit = Constants.INSERT;
                     break;
-                case 51:			// ^[[3~ tecla suprimir + this.read per borrar ~
+                case SUPRIMIR:			// ^[[3~ tecla suprimir + this.read per borrar ~
                     this.read();
-                    return Constants.SUPRIMIR;
+                    llegit = Constants.SUPRIMIR;
                     break;
             }
 
-        }else if (llegit == 127){
-            return Constants.BACKSPACE();
-        }else
-            return llegit;
+        }else if (llegit == BACKSPACE){
+            llegit = Constants.BACKSPACE;
         }
-
+        
+        return llegit;
     }
+
+    
 
 
 
     @Override
     public String readLine() throws IOException{
+        
         int tecla;
+        boolean noError = true;
+        
         while((tecla = this.read())!= '\r'){ //com que la comanda esta en mode raw l'ultim caracter quan s'acaba d'escriure es \r
 
-            switch(tecla){ //COMPLETAR CRIDANT ELS METODES DE LINE
+            switch(tecla){ 
 
-                case Constants.DRETA:
-                    line.moureDreta();
+                case Constants.RIGHT:
+                    noError = line.right();
                     break;
 
-                case Constants.ESQUERRA:
-                    line.moureEsquerra();
+                case Constants.LEFT:
+                    noError = line.left();
                     break;
 
-                case Constants.INICI:
-                    line.iniciLinia();
+                case Constants.HOME:
+                    noError = line.home();
                     break;
 
-                case Constants.FI:
-                    line.fiLinia();
+                case Constants.FIN:
+                    noError = line.fin();
                     break;
 
                 case Constants.SUPRIMIR:
-                    line.suprimir();
+                    noError = line.suprimir();
                     break;
-                case Constants.BACKSPACE():
-                    line.backspace();
+                case Constants.BACKSPACE:
+                    noError = line.backspace();
                     break;
 
                 case Constants.INSERT:
-                    line.sobreescriure(); //canviar el metode pq el boolean sigui un atribut de line i no faci falta aqui
+                    line.sobreescriure(); 
                     break;
                 default:
-                    line.escriure((char)tecla);
+                    noError = line.write((char)tecla);
                     break;
             }
         }
-       	return line;
+        if(noError) return line.toString();
+        else return "Tractar error";
     }
 
 
