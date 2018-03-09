@@ -1,6 +1,6 @@
 
 import java.io.IOException;
-import static java.lang.String.*;
+import static java.lang.StringBuilder.*;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -15,7 +15,7 @@ import static java.lang.String.*;
 public class Line {
     
     public static String ESCSEQ = "\27";
-    String linia;
+    StringBuilder linia;
     
     public Line(){
         linia = "";
