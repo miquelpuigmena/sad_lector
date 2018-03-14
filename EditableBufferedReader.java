@@ -130,7 +130,7 @@ public class EditableBufferedReader extends BufferedReader {
                     break;
             }
             renovarLinia();
-            setCursor();
+            moveCursor();
             //System.out.print(esc_str);
         }
         if(noError) return line.toString();
@@ -160,7 +160,7 @@ public class EditableBufferedReader extends BufferedReader {
         System.out.print('\r');
         System.out.print(line.toString());
     }
-    private void setCursor(){
+    private void moveCursor(){
         System.out.print('\r');
         if(line.getCursor()>0)
             System.out.print(ESCSEQ+"["+line.getCursor()+"C");
