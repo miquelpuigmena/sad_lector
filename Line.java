@@ -19,64 +19,57 @@ public class Line {
     }
 
     public boolean right(){
-        if(cursor<getLengthLinia()){
+        if(cursor<linia.length()){
             cursor++;
             return true;
         }else return false;
     }
 
     public boolean left(){
-        // moure cap a l'esquerra 1 caracters ESQSEQ[1D
-        //cal moure el cursor tant a la pantalla com al que apunta a string
         if(cursor>0){
             cursor--;
             return true;
         }else return false;
-        //PROBLEMA: EN COMPTES DE MOURE EL CURSOR CAP A L'ESQUERRA ESBORRA ELS CARACTERS
     }
 
     public boolean suprimir(){
-        if(cursor<=getLengthLinia()-1){
+        if(cursor<linia.length()){
             linia.deleteCharAt(cursor);
             return true;
         }else return false;
     }
 
     public boolean backspace(){
-        if(cursor>0 && cursor<=getLengthLinia()){
-            linia.deleteCharAt(--cursor);
+        if(cursor>0){
+            linia.deleteCharAt(cursor--);
             return true;
         }else return false;
     }
 
     public void sobreescriure(){
-            sobreescriure = sobreescriure;
+            sobreescriure = !sobreescriure;
     }
 
     public boolean fin(){
-        if(cursor<getLengthLinia()){
-            cursor = getLengthLinia();
+        if(cursor<linia.length()){
+            cursor = linia.length();
             return true;
         }else return false;
     }
 
     public boolean home(){
-        if(cursor>0){
+       if(cursor>0){
             cursor = 0;
             return true;
         }else return false;
     }
 
     public boolean write(int i){
-        //CAL TRACTAR EL SOBREESCRIURE AQUI, I L'ESCRIURE AL MIG DE STRING!!!!
-        if(cursor<1900000){
+        if(cursor<colsTerminal){
             if(sobreescriure){
-                linia.replace(cursor,cursor,Character.toString((char) i));//borrar caracter anterior i insertar el nou a la seva posicio
-                if(cursor==getLengthLinia()){
-                  cursor--;
-                }
+                linia.replace(cursor, cursor + 1, Character.toString((char)i));
             }else{
-                linia.insert(cursor, Character.toString((char) i));
+                linia.insert(cursor, (char)i);
             }
             cursor++;
             return true;
@@ -87,7 +80,7 @@ public class Line {
     public String toString(){
         return linia.toString();
     }
-    public int getLengthLinia(){
+    public int getLengthLinia(){ // crec que no el fem servir
         return linia.length();
     }
     public int getCursor(){
