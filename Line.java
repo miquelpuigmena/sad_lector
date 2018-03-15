@@ -5,7 +5,6 @@ import java.lang.StringBuilder.*;
 
 public class Line {
 
-    public static char ESCSEQ = '\033';
     StringBuilder linia;
     private boolean sobreescriure;
     private int cursor;
@@ -15,7 +14,7 @@ public class Line {
         linia = new StringBuilder();
         sobreescriure = false;
         cursor = 0;
-        colsTerminal = 80;
+        colsTerminal = colsTerminal();//80;
     }
 
     public boolean right(){
@@ -80,14 +79,23 @@ public class Line {
     public String toString(){
         return linia.toString();
     }
+    
     public int getLengthLinia(){ // crec que no el fem servir
         return linia.length();
     }
+    
     public int getCursor(){
         return cursor;
     }
+    
     public final int colsTerminal(){
-
+        String[] cmd = {"/bin/sh", "-c", "tput cols 2>/dev/tty"};
+        try{
+            Process p = Runtime.getRuntime().exec(cmd);
+            BufferedReader b = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String cols = b.readLine();
+            return Integer.parseInt(cols);  
+        }catch(IOException e){}
         return -1;
-    }
+    }   
 }
