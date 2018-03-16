@@ -1,8 +1,5 @@
-
-import java.io.IOException;
+import java.io.*;
 import java.lang.StringBuilder.*;
-
-
 public class Line {
 
     StringBuilder linia;
@@ -26,9 +23,10 @@ public class Line {
 
     public boolean left(){
         if(cursor>0){
-            cursor--;
+	    cursor--;
             return true;
-        }else return false;
+	}
+        else return false;
     }
 
     public boolean suprimir(){
@@ -40,7 +38,7 @@ public class Line {
 
     public boolean backspace(){
         if(cursor>0){
-            linia.deleteCharAt(cursor--);
+            linia.deleteCharAt(--cursor);
             return true;
         }else return false;
     }
@@ -80,15 +78,17 @@ public class Line {
         return linia.toString();
     }
     
-    public int getLengthLinia(){ // crec que no el fem servir
+    public int getLengthLinia(){ 
         return linia.length();
     }
     
     public int getCursor(){
         return cursor;
     }
-    
-    public final int colsTerminal(){
+    public boolean getInsertMode(){
+	return sobreescriure;
+    } 
+    private final int colsTerminal(){
         String[] cmd = {"/bin/sh", "-c", "tput cols 2>/dev/tty"};
         try{
             Process p = Runtime.getRuntime().exec(cmd);

@@ -12,8 +12,10 @@ public class Test {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        String str = "r";
-        System.out.print("\033["+9+"C");
+        String str = "rrracb";
+	System.out.print(str);
+        System.out.print("\033["+5+"D");
+        System.out.print("\033["+2+"P");
         scanner.next();
 
     }

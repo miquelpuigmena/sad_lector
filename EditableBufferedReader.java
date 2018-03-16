@@ -6,6 +6,7 @@
 
 
 import java.io.*;
+import java.util.*;
 /**
  *
  * @author lsadusr10
@@ -17,7 +18,6 @@ ESCAPE SEQUENCES BEGIN WITH ^[
 
 public class EditableBufferedReader extends BufferedReader {
     private static String ESCSEQ = "\033";
-
     private static final int ESC = 27;
     private static final int BACKSPACE = 127;
     private static final int DRETA = 67;
@@ -74,96 +74,83 @@ public class EditableBufferedReader extends BufferedReader {
         return llegit;
     }
 
-
-
-
-
     @Override
     public String readLine() throws IOException{
         int tecla;
-        boolean noError = true;
-
+	List<String> list_commandes = new ArrayList<String>();
         while((tecla = this.read())!= '\r'){ //com que la comanda esta en mode raw l'ultim caracter quan s'acaba d'escriure es \r
-            String esc_str = "";
+            list_commandes.clear();
             switch(tecla){
-
                 case Constants.RIGHT:
-                    noError = line.right();
-                    //System.out.print(ESCSEQ + "[C");
-                    esc_str=ESCSEQ + "[C";
+                    if(line.right())
+                    	list_commandes.add(ESCSEQ + "[C");
                     break;
 
                 case Constants.LEFT:
-                    noError = line.left();
-                    //System.out.print(ESCSEQ + "[D");
-                    esc_str=ESCSEQ + "[D";
+                    if(line.left())
+                    	list_commandes.add(ESCSEQ + "[D");
                     break;
 
                 case Constants.HOME:
-                    noError = line.home();
-                    //System.out.print('\r');
-                    esc_str="\r";
+                    if(line.home())
+                    	list_commandes.add(ESCSEQ + "[G");
                     break;
 
                 case Constants.FIN:
-                    noError = line.fin();
-                    //System.out.print(ESCSEQ + "[F");
-                    esc_str=ESCSEQ + "[F";
+                    int rows_to_move_forward = line.getLengthLinia()-line.getCursor()+1;
+                    if(line.fin())
+			list_commandes.add(ESCSEQ + "[" + rows_to_move_forward + "G");
                     break;
 
                 case Constants.SUPRIMIR:
-                    noError = line.suprimir();
-                    //System.out.print(ESCSEQ + "[3~");
-                    esc_str=ESCSEQ + "[3~";
+                    if(line.suprimir())
+                    	list_commandes.add(ESCSEQ +"[P");
                     break;
                 case Constants.BACKSPACE:
-                    noError = line.backspace();
-                    //System.out.print("\b \b");
+                    if(line.backspace()){
+		    	list_commandes.add(ESCSEQ +"[D");
+                    	list_commandes.add(ESCSEQ +"[P");
+		    }
                     break;
 
                 case Constants.INSERT:
                     line.sobreescriure();
-                    esc_str=ESCSEQ + "[2~";
                     break;
                 default:
-                    noError = line.write((char)tecla);
+                    if(line.write((char)tecla)){
+			if(line.getInsertMode()){
+			    list_commandes.add(Character.toString((char)tecla));
+			}else{
+			    list_commandes.add(ESCSEQ+"[@");
+			    list_commandes.add(Character.toString((char)tecla));
+			}			
+		    }
                     break;
             }
-            renovarLinia();
-            moveCursor();
-            //System.out.print(esc_str);
+            renovarLinia(list_commandes);
         }
-        if(noError) return line.toString();
-        else return "Tractar error";
+        return line.toString();
+        //else return "Tractar error";
     }
 
     public void setRaw() {
-        String[] command = {"/bin/bash", "-c", "stty -echo raw < /dev/tty"};
+	String[] set_raw_command = {"/bin/bash", "-c", "stty -echo raw < /dev/tty"};
+        run_commana(set_raw_command);
+    }
+
+    public void unsetRaw() {
+	String[] unset_raw_command = {"/bin/bash", "-c", "stty echo cooked < /dev/tty"};
+        run_commana(unset_raw_command);
+    }
+
+    private void run_commana(String[] command){
         try{
             Process proc = Runtime.getRuntime().exec(command);
         }catch(IOException e){}
     }
-
-    public void unsetRaw() {
-        String[] command1 = {"/bin/bash", "-c", "stty echo < /dev/tty"};
-        String[] command2 = {"/bin/bash", "-c", "stty cooked < /dev/tty"};
-
-        try{
-            Process proc = Runtime.getRuntime().exec(command1);
-            Process proc2 = Runtime.getRuntime().exec(command2);
-
-        }catch(IOException e){}
+    private void renovarLinia(List<String> llista_commanes){
+        for(String commana : llista_commanes){
+	    System.out.print(commana);
+	}
     }
-    private void renovarLinia(){
-        System.out.print('\r');
-        System.out.print(new String(new char[80]).replace("\0", " "));//no es 80, es fins a final del terminal line.colsterminal()
-        System.out.print('\r');
-        System.out.print(line.toString());
-    }
-    private void moveCursor(){
-        System.out.print('\r');
-        if(line.getCursor()>0)
-            System.out.print(ESCSEQ+"["+line.getCursor()+"C");
-    }
-
 }
