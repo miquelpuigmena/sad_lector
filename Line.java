@@ -1,62 +1,122 @@
-
-import java.io.IOException;
+import java.io.*;
 import java.lang.StringBuilder.*;
+import java.util.Observable;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+public class Line extends Observable{
 
-/**
- *
- * @author Berta
- */
-public class Line {
-    
-    public static String ESCSEQ = "\27";
     StringBuilder linia;
+    private boolean sobreescriure;
+    private int cursor;
+    private final int colsTerminal;
+    private static String ESCSEQ = "\033";
+
+    
     
     public Line(){
         linia = new StringBuilder();
-    }
-    
-    public void moureDreta(){ 
-    }
-    
-    public void moureEsquerra(){
-        // moure cap a l'esquerra 1 caracters ESQSEQ[1D
-        //cal moure el cursor tant a la pantalla com al que apunta a string
-        System.out.print(ESCSEQ + "[D");
-        
-        //PROBLEMA: EN COMPTES DE MOURE EL CURSOR CAP A L'ESQUERRA ESBORRA ELS CARACTERS
-    }
-    
-    public void suprimir(){
+        sobreescriure = false;
+        cursor = 0;
+        colsTerminal = colsTerminal();
         
     }
-    
-    public void backspace(){
-        
+
+    public boolean right(){
+        if(cursor<linia.length()){
+            cursor++;
+            notifyObservers(ESCSEQ + "[C");
+            return true;
+        }else return false;
+    }
+
+    public boolean left(){
+        if(cursor>0){
+	    cursor--;
+            notifyObservers(ESCSEQ + "[D");
+            return true;
+	}
+        else return false;
+    }
+
+    public boolean suprimir(){
+        if(cursor<linia.length()){
+            linia.deleteCharAt(cursor);
+            notifyObservers(ESCSEQ + "[P");
+            return true;
+        }else return false;
+    }
+
+    public boolean backspace(){
+        if(cursor>0){
+            linia.deleteCharAt(--cursor);
+            notifyObservers(ESCSEQ + "[D" + ESCSEQ + "[P");
+            return true;
+        }else return false;
+    }
+
+    public void sobreescriure(){
+            sobreescriure = !sobreescriure;
+    }
+
+    public boolean fin(){
+        if(cursor<linia.length()){
+            int rows_to_move_forward = linia.length()-cursor+1;
+            notifyObservers(ESCSEQ + "[" + rows_to_move_forward + "G");
+            cursor = linia.length();
+            return true;
+        }else return false;
+    }
+
+    public boolean home(){
+       if(cursor>0){
+            cursor = 0;
+            notifyObservers(ESCSEQ + "[G");
+            return true;
+        }else return false;
+    }
+
+    public boolean write(int i){
+        if(cursor<colsTerminal){
+            if(sobreescriure){
+                linia.replace(cursor, cursor + 1, Character.toString((char)i));
+                notifyObservers(Character.toString((char)i));
+            }else{
+                linia.insert(cursor, (char)i);
+                notifyObservers(ESCSEQ + "[@" + Character.toString((char)i));
+            }
+            cursor++;
+            return true;
+        }else return false;
+    }
+
+    @Override
+    public String toString(){
+        return linia.toString();
     }
     
-    public void sobreescriure(boolean b){
-        // veure metode replace de string
+    public int getLengthLinia(){ 
+        return linia.length();
     }
     
-    public void fiLinia(){
-        
+    public int getCursor(){
+        return cursor;
     }
+    public boolean getInsertMode(){
+	return sobreescriure;
+    } 
     
-    public void escriure(int i){
-        linia += valueOf(i);
-    }
     
-    public void iniciLinia(){
-        
-    }
     
-  
-   
     
+    
+    
+    private final int colsTerminal(){
+        String[] cmd = {"/bin/sh", "-c", "tput cols 2>/dev/tty"};
+        try{
+            Process p = Runtime.getRuntime().exec(cmd);
+            BufferedReader b = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String cols = b.readLine();
+            return Integer.parseInt(cols);  
+        }catch(IOException e){}
+        return -1;
+    }   
 }

@@ -6,6 +6,7 @@
 
 
 import java.io.*;
+import java.util.*;
 /**
  *
  * @author lsadusr10
@@ -16,72 +17,124 @@ ESCAPE SEQUENCES BEGIN WITH ^[
 */
 
 public class EditableBufferedReader extends BufferedReader {
+    private static String ESCSEQ = "\033";
+    private static final int ESC = 27;
+    private static final int BACKSPACE = 127;
+    private static final int DRETA = 67;
+    private static final int ESQUERRA = 68;
+    private static final int FI = 70;
+    private static final int INICI = 72;
+    private static final int INSERT = 50;
+    private static final int SUPRIMIR = 51;
 
-    private char[] caracters; 
+
+    private Line line;
+    private Console cons;
+    
     
     public EditableBufferedReader(InputStreamReader in) {
         super(in);
-        caracters = new char[10];
+        line = new Line();
+        cons = new Console();
+        line.addObserver(cons);
     }
-    
+
 
     @Override
     public int read() throws IOException{
         //llegir char de teclat
-        int chars_llegits = 0;
-        chars_llegits =  super.read(caracters, 0, 10);
-        //separar char de seq escape
-        
-        int suma = 0;
-        for(int c: caracters){
-            suma += c;
+        int llegit =  super.read();
+
+        if (llegit == ESC){
+
+            this.read(); //per descartar la segona [
+            switch(llegit = this.read()){
+
+                case DRETA:			// ^[[C tecla dreta
+                    llegit =  Constants.RIGHT;
+                    break;
+                case ESQUERRA:			// ^[[D tecla esquerra
+                    llegit = Constants.LEFT;
+                    break;
+                case INICI:			// ^[[H tecla inici
+                    llegit = Constants.HOME;
+                    break;
+                case FI:			// ^[[F tecla final
+                    llegit = Constants.FIN;
+                    break;
+                case INSERT:			// ^[[2~ tecla insertar + this.read per borrar ~
+                    this.read();
+                    llegit = Constants.INSERT;
+                    break;
+                case SUPRIMIR:			// ^[[3~ tecla suprimir + this.read per borrar ~
+                    this.read();
+                    llegit = Constants.SUPRIMIR;
+                    break;
+            }
+
+        }else if (llegit == BACKSPACE){
+            llegit = Constants.BACKSPACE;
         }
-        
-        //retornar int en funcio del que sha llegit
-        return suma;
+
+        return llegit;
     }
-    
+
+    @Override
+    public String readLine() throws IOException{
+        int tecla;
+	
+        while((tecla = this.read())!= '\r'){ //com que la comanda esta en mode raw l'ultim caracter quan s'acaba d'escriure es \r
+
+            switch(tecla){
+                case Constants.RIGHT:
+                    line.right();
+                    break;
+
+                case Constants.LEFT:
+                    line.left();
+                    break;
+
+                case Constants.HOME:
+                    line.home();
+                    break;
+
+                case Constants.FIN:
+                    line.fin();
+                    break;
+
+                case Constants.SUPRIMIR:
+                    line.suprimir();
+                    break;
+                case Constants.BACKSPACE:
+                    line.backspace();
+                    break;
+
+                case Constants.INSERT:
+                    line.sobreescriure();
+                    break;
+                default:
+                    line.write((char)tecla);
+                    break;
+            }
+        }
+        return line.toString();
+        //else return "Tractar error";
+    }
+
     public void setRaw() {
-        String[] command = {"/bin/sh", "-c", "stty raw </dev/tty"};
+	String[] set_raw_command = {"/bin/bash", "-c", "stty -echo raw < /dev/tty"};
+        run_commana(set_raw_command);
+    }
+
+    public void unsetRaw() {
+	String[] unset_raw_command = {"/bin/bash", "-c", "stty echo cooked < /dev/tty"};
+        run_commana(unset_raw_command);
+    }
+
+    private void run_commana(String[] command){
         try{
             Process proc = Runtime.getRuntime().exec(command);
         }catch(IOException e){}
     }
 
-    public void unsetRaw() {
-        String[] command = {"/bin/sh", "-c", "stty cooked </dev/tty"};
-        try{
-            Process proc = Runtime.getRuntime().exec(command);
-        }catch(IOException e){}    
-    } 
-    /**
-     *
-     * @return
-     */
-    @Override
-    public String readLine() throws IOException{
-         int tecla = this.read();
-        
-        switch(tecla){ //COMPLETAR CRIDANT ELS METODES DE LINE
-                
-                case Constants.DRETA:
-                    
-                case Constants.ESQUERRA:
-                    
-                case Constants.INICI:
-                    
-                case Constants.FI:
-                
-                case Constants.SUPRIMIR:
-                    
-                case Constants.INSERT:
-                    
-                //altres casos 
-                            line.escriure(tecla);
-                    
-                    break;
-            }
-        return null;
-    }
-    }
 }
