@@ -18,7 +18,6 @@ public class TestReadLine {
         int num = 0;
         try {
             str = in.readLine();
-            //num = in.read();
         } catch(IOException e) {
             e.printStackTrace();
         }

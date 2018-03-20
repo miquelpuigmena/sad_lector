@@ -1,169 +1,120 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
 import java.io.*;
-/**
- *
- * @author lsadusr10
- */
-
-/*
-ESCAPE SEQUENCES BEGIN WITH ^[
-*/
 
 public class EditableBufferedReader extends BufferedReader {
-    private static String ESCSEQ = "\033";
 
-    private static final int ESC = 27;
-    private static final int BACKSPACE = 127;
-    private static final int DRETA = 67;
-    private static final int ESQUERRA = 68;
-    private static final int FI = 70;
-    private static final int INICI = 72;
-    private static final int INSERT = 50;
-    private static final int SUPRIMIR = 51;
-
-
-    Line line;
+    private Line line;
+    private Console cons;
+    
+    
     public EditableBufferedReader(InputStreamReader in) {
         super(in);
         line = new Line();
+        cons = new Console();
+        line.addObserver(cons);
     }
 
+    
+    /**
+     * ESC parser:
+     * 
+     * ESCAPE SEQUENCES BEGIN WITH ^[
+     * 
+     * RIGHT:   ESC [ C
+     * LEFT:    ESC [ D
+     * HOME:    ESC O H, ESC [ 1 ~(keypad)
+     * END:     ESC O F, ESC [ 4 ~(keypad)
+     * INS:     ESC [ 2 ~
+     * DEL:     ESC [ 3 ~
+     */
 
     @Override
     public int read() throws IOException{
-        //llegir char de teclat
-        int llegit =  super.read();
-
-        if (llegit == ESC){
-
-            this.read(); //per descartar la segona [
-            switch(llegit = this.read()){
-
-                case DRETA:			// ^[[C tecla dreta
-                    llegit =  Constants.RIGHT;
-                    break;
-                case ESQUERRA:			// ^[[D tecla esquerra
-                    llegit = Constants.LEFT;
-                    break;
-                case INICI:			// ^[[H tecla inici
-                    llegit = Constants.HOME;
-                    break;
-                case FI:			// ^[[F tecla final
-                    llegit = Constants.FIN;
-                    break;
-                case INSERT:			// ^[[2~ tecla insertar + this.read per borrar ~
-                    this.read();
-                    llegit = Constants.INSERT;
-                    break;
-                case SUPRIMIR:			// ^[[3~ tecla suprimir + this.read per borrar ~
-                    this.read();
-                    llegit = Constants.SUPRIMIR;
-                    break;
-            }
-
-        }else if (llegit == BACKSPACE){
-            llegit = Constants.BACKSPACE;
+        int ch, ch1;
+        
+        if((ch = super.read()) != Constants.ESC)
+            return ch;
+        
+        switch (ch=super.read()){
+            case 'O':
+                switch(ch=super.read()){
+                    case 'H': return Constants.HOME;
+                    case 'F': return Constants.FIN;
+                    default: return ch;
+                }
+            case '[':
+                switch(ch=super.read()){
+                    case 'C': return Constants.RIGHT;
+                    case 'D': return Constants.LEFT;
+                    // hauriem de tenir definides les constants per ordre
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                        if ((ch1 = super.read()) != '~')
+                            return ch1;
+                        return Constants.HOME - ch + '1';
+                    default: return ch;
+                }
+            default:
+                return ch;
         }
-
-        return llegit;
     }
-
-
-
-
 
     @Override
     public String readLine() throws IOException{
         int tecla;
-        boolean noError = true;
-
+	
         while((tecla = this.read())!= '\r'){ //com que la comanda esta en mode raw l'ultim caracter quan s'acaba d'escriure es \r
-            String esc_str = "";
-            switch(tecla){
 
+            switch(tecla){
                 case Constants.RIGHT:
-                    noError = line.right();
-                    //System.out.print(ESCSEQ + "[C");
-                    esc_str=ESCSEQ + "[C";
+                    line.right();
                     break;
 
                 case Constants.LEFT:
-                    noError = line.left();
-                    //System.out.print(ESCSEQ + "[D");
-                    esc_str=ESCSEQ + "[D";
+                    line.left();
                     break;
 
                 case Constants.HOME:
-                    noError = line.home();
-                    //System.out.print('\r');
-                    esc_str="\r";
+                    line.home();
                     break;
 
                 case Constants.FIN:
-                    noError = line.fin();
-                    //System.out.print(ESCSEQ + "[F");
-                    esc_str=ESCSEQ + "[F";
+                    line.fin();
                     break;
 
                 case Constants.SUPRIMIR:
-                    noError = line.suprimir();
-                    //System.out.print(ESCSEQ + "[3~");
-                    esc_str=ESCSEQ + "[3~";
+                    line.suprimir();
                     break;
                 case Constants.BACKSPACE:
-                    noError = line.backspace();
-                    //System.out.print("\b \b");
+                    line.backspace();
                     break;
 
                 case Constants.INSERT:
                     line.sobreescriure();
-                    esc_str=ESCSEQ + "[2~";
                     break;
                 default:
-                    noError = line.write((char)tecla);
+                    line.write((char)tecla);
                     break;
             }
-            renovarLinia();
-            moveCursor();
-            //System.out.print(esc_str);
         }
-        if(noError) return line.toString();
-        else return "Tractar error";
+        return line.toString();
     }
 
     public void setRaw() {
-        String[] command = {"/bin/bash", "-c", "stty -echo raw < /dev/tty"};
-        try{
-            Process proc = Runtime.getRuntime().exec(command);
-        }catch(IOException e){}
+	String[] set_raw_command = {"/bin/bash", "-c", "stty -echo raw < /dev/tty"};
+        run_commana(set_raw_command);
     }
 
     public void unsetRaw() {
-        String[] command1 = {"/bin/bash", "-c", "stty echo < /dev/tty"};
-        String[] command2 = {"/bin/bash", "-c", "stty cooked < /dev/tty"};
+	String[] unset_raw_command = {"/bin/bash", "-c", "stty echo cooked < /dev/tty"};
+        run_commana(unset_raw_command);
+    }
 
+    private void run_commana(String[] command){
         try{
-            Process proc = Runtime.getRuntime().exec(command1);
-            Process proc2 = Runtime.getRuntime().exec(command2);
-
+            Process proc = Runtime.getRuntime().exec(command);
         }catch(IOException e){}
-    }
-    private void renovarLinia(){
-        System.out.print('\r');
-        System.out.print(new String(new char[80]).replace("\0", " "));//no es 80, es fins a final del terminal line.colsterminal()
-        System.out.print('\r');
-        System.out.print(line.toString());
-    }
-    private void moveCursor(){
-        System.out.print('\r');
-        if(line.getCursor()>0)
-            System.out.print(ESCSEQ+"["+line.getCursor()+"C");
     }
 
 }
