@@ -23,6 +23,7 @@ public class Line extends Observable{
     public boolean right(){
         if(cursor<linia.length()){
             cursor++;
+            setChanged();
             notifyObservers(ESCSEQ + "[C");
             return true;
         }else return false;
@@ -31,6 +32,7 @@ public class Line extends Observable{
     public boolean left(){
         if(cursor>0){
 	    cursor--;
+            setChanged();
             notifyObservers(ESCSEQ + "[D");
             return true;
 	}
@@ -40,6 +42,7 @@ public class Line extends Observable{
     public boolean suprimir(){
         if(cursor<linia.length()){
             linia.deleteCharAt(cursor);
+            setChanged();
             notifyObservers(ESCSEQ + "[P");
             return true;
         }else return false;
@@ -48,6 +51,7 @@ public class Line extends Observable{
     public boolean backspace(){
         if(cursor>0){
             linia.deleteCharAt(--cursor);
+            setChanged();
             notifyObservers(ESCSEQ + "[D" + ESCSEQ + "[P");
             return true;
         }else return false;
@@ -60,6 +64,7 @@ public class Line extends Observable{
     public boolean fin(){
         if(cursor<linia.length()){
             int rows_to_move_forward = linia.length()-cursor+1;
+            setChanged();
             notifyObservers(ESCSEQ + "[" + rows_to_move_forward + "G");
             cursor = linia.length();
             return true;
@@ -69,6 +74,7 @@ public class Line extends Observable{
     public boolean home(){
        if(cursor>0){
             cursor = 0;
+            setChanged();
             notifyObservers(ESCSEQ + "[G");
             return true;
         }else return false;
@@ -78,9 +84,11 @@ public class Line extends Observable{
         if(cursor<colsTerminal){
             if(sobreescriure){
                 linia.replace(cursor, cursor + 1, Character.toString((char)i));
+                setChanged();
                 notifyObservers(Character.toString((char)i));
             }else{
                 linia.insert(cursor, (char)i);
+                setChanged();
                 notifyObservers(ESCSEQ + "[@" + Character.toString((char)i));
             }
             cursor++;
@@ -92,23 +100,7 @@ public class Line extends Observable{
     public String toString(){
         return linia.toString();
     }
-    
-    public int getLengthLinia(){ 
-        return linia.length();
-    }
-    
-    public int getCursor(){
-        return cursor;
-    }
-    public boolean getInsertMode(){
-	return sobreescriure;
-    } 
-    
-    
-    
-    
-    
-    
+
     private final int colsTerminal(){
         String[] cmd = {"/bin/sh", "-c", "tput cols 2>/dev/tty"};
         try{
