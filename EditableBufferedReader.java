@@ -1,32 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
 import java.io.*;
-import java.util.*;
-/**
- *
- * @author lsadusr10
- */
-
-/*
-ESCAPE SEQUENCES BEGIN WITH ^[
-*/
 
 public class EditableBufferedReader extends BufferedReader {
-    private static String ESCSEQ = "\033";
-    private static final int ESC = 27;
-    private static final int BACKSPACE = 127;
-    private static final int DRETA = 67;
-    private static final int ESQUERRA = 68;
-    private static final int FI = 70;
-    private static final int INICI = 72;
-    private static final int INSERT = 50;
-    private static final int SUPRIMIR = 51;
-
 
     private Line line;
     private Console cons;
@@ -39,44 +13,51 @@ public class EditableBufferedReader extends BufferedReader {
         line.addObserver(cons);
     }
 
+    
+    /**
+     * ESC parser:
+     * 
+     * ESCAPE SEQUENCES BEGIN WITH ^[
+     * 
+     * RIGHT:   ESC [ C
+     * LEFT:    ESC [ D
+     * HOME:    ESC O H, ESC [ 1 ~(keypad)
+     * END:     ESC O F, ESC [ 4 ~(keypad)
+     * INS:     ESC [ 2 ~
+     * DEL:     ESC [ 3 ~
+     */
 
     @Override
     public int read() throws IOException{
-        //llegir char de teclat
-        int llegit =  super.read();
-
-        if (llegit == ESC){
-
-            this.read(); //per descartar la segona [
-            switch(llegit = this.read()){
-
-                case DRETA:			// ^[[C tecla dreta
-                    llegit =  Constants.RIGHT;
-                    break;
-                case ESQUERRA:			// ^[[D tecla esquerra
-                    llegit = Constants.LEFT;
-                    break;
-                case INICI:			// ^[[H tecla inici
-                    llegit = Constants.HOME;
-                    break;
-                case FI:			// ^[[F tecla final
-                    llegit = Constants.FIN;
-                    break;
-                case INSERT:			// ^[[2~ tecla insertar + this.read per borrar ~
-                    this.read();
-                    llegit = Constants.INSERT;
-                    break;
-                case SUPRIMIR:			// ^[[3~ tecla suprimir + this.read per borrar ~
-                    this.read();
-                    llegit = Constants.SUPRIMIR;
-                    break;
-            }
-
-        }else if (llegit == BACKSPACE){
-            llegit = Constants.BACKSPACE;
+        int ch, ch1;
+        
+        if((ch = super.read()) != Constants.ESC)
+            return ch;
+        
+        switch (ch=super.read()){
+            case 'O':
+                switch(ch=super.read()){
+                    case 'H': return Constants.HOME;
+                    case 'F': return Constants.FIN;
+                    default: return ch;
+                }
+            case '[':
+                switch(ch=super.read()){
+                    case 'C': return Constants.RIGHT;
+                    case 'D': return Constants.LEFT;
+                    // hauriem de tenir definides les constants per ordre
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                        if ((ch1 = super.read()) != '~')
+                            return ch1;
+                        return Constants.HOME - ch + '1';
+                    default: return ch;
+                }
+            default:
+                return ch;
         }
-
-        return llegit;
     }
 
     @Override
@@ -118,7 +99,6 @@ public class EditableBufferedReader extends BufferedReader {
             }
         }
         return line.toString();
-        //else return "Tractar error";
     }
 
     public void setRaw() {
